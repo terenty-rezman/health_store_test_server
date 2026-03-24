@@ -1,0 +1,26 @@
+{
+  "name": "health_store_test_server",
+  "version": "1.0.0",
+  "description": "Backend server for the Health Store project",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Alex-B012/health_store_test_server.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Alex-B012/health_store_test_server/issues"
+  },
+  "homepage": "https://github.com/Alex-B012/health_store_test_server#readme",
+  "dependencies": {
+    "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
+}

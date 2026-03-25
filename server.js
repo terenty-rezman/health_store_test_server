@@ -36,6 +36,7 @@ app.post("/api/test/scanner-data", (req, res) => {
   try {
     const { scannerData } = req.body;
 
+    // throw new Error("Test failure");
     console.log("scannerData - received", scannerData);
     res.json({ success: true, message: "Scanner data delivered" });
   } catch (error) {

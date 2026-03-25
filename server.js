@@ -1,5 +1,7 @@
 import express from "express";
 import dotenv from "dotenv";
+import cors from "cors";
+
 import ngrok from "ngrok";
 import { handleNodemonRestart, handleServerError } from "./utils/utils.js";
 
@@ -11,9 +13,10 @@ import {
 dotenv.config();
 
 const app = express();
+app.use(cors({ origin: "http://127.0.0.1:5500" }));
 app.use(express.json());
 
-const PORT = Number(process.env.PORT) || 5051;
+const PORT = Number(process.env.PORT) || 8080;
 const API_KEY = process.env.API_KEY;
 
 // --- Middleware ---
@@ -32,6 +35,8 @@ app.post("/api/test", (req, res) => {
 app.post("/api/test/scanner-data", (req, res) => {
   try {
     const { scannerData } = req.body;
+
+    console.log("scannerData - received", scannerData);
     res.json({ success: true, message: "Scanner data delivered" });
   } catch (error) {
     handleServerError(res, error);

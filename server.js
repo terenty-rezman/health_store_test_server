@@ -10,6 +10,9 @@ import {
   tokenVerificationMiddleware,
 } from "./middlewares/middleware.js";
 
+import telegramBot from "node-telegram-bot-api";
+import { checkChatId } from "./bot/bot.js";
+
 dotenv.config();
 
 const app = express();
@@ -18,6 +21,12 @@ app.use(express.json());
 
 const PORT = Number(process.env.PORT) || 8080;
 const API_KEY = process.env.API_KEY;
+
+const url = process.env.NGROK_DOMAIN || (await ngrok.connect(PORT));
+const TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+const bot = new telegramBot(TOKEN);
+
+console.log("Telegram bot running...");
 
 // --- Middleware ---
 app.use(loggingMiddleware);
@@ -43,6 +52,17 @@ app.post("/api/test/scanner-data", (req, res) => {
     handleServerError(res, error);
   }
 });
+
+app.post(`/bot${TOKEN}`, (req, res) => {
+  bot.processUpdate(req.body);
+  console.log("Telegram update received:", req.body);
+  res.sendStatus(200);
+});
+
+bot
+  .setWebHook(`${url}/bot${TOKEN}`)
+  .then(() => console.log("Webhook set"))
+  .catch((err) => console.error(err));
 
 // --- Start server and ngrok tunnel ---
 let isShuttingDown = false;
@@ -88,5 +108,16 @@ const startServer = async () => {
   process.on("SIGTERM", shutdown);
   process.once("SIGUSR2", () => handleNodemonRestart(shutdown));
 };
+
+bot.on("message", (msg) => {
+  const chatId = msg.chat.id;
+
+  if (checkChatId(chatId)) {
+    bot.sendMessage(chatId, "Message received: " + msg.text);
+    console.log("Message received:", msg.text);
+  } else {
+    console.log("Received message from unauthorized chat ID:", chatId);
+  }
+});
 
 startServer();

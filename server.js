@@ -10,10 +10,18 @@ import {
   tokenVerificationMiddleware,
 } from "./middlewares/middleware.js";
 
-import telegramBot from "node-telegram-bot-api";
+import TelegramBot from "node-telegram-bot-api";
 import { checkChatId } from "./bot/bot.js";
 
 dotenv.config();
+
+const webAppUrl_scanner = "https://e293-45-156-22-143.ngrok-free.app/front/scanner.html";
+
+
+const sellers = new Map([
+  [763910115, { name: "Seller2", telegram_id: 763910115 }],
+]);
+
 
 const app = express();
 app.use(cors({ origin: "http://127.0.0.1:5500" }));
@@ -22,9 +30,10 @@ app.use(express.json());
 const PORT = Number(process.env.PORT) || 8080;
 const API_KEY = process.env.API_KEY;
 
-const url = process.env.NGROK_DOMAIN || (await ngrok.connect(PORT));
+// const url = process.env.NGROK_DOMAIN || (await ngrok.connect(PORT));
 const TOKEN = process.env.TELEGRAM_BOT_TOKEN;
-const bot = new telegramBot(TOKEN);
+// const bot = new telegramBot(TOKEN);
+const bot = new TelegramBot(TOKEN, { polling: true });
 
 console.log("Telegram bot running...");
 
@@ -53,16 +62,37 @@ app.post("/api/test/scanner-data", (req, res) => {
   }
 });
 
-app.post(`/bot${TOKEN}`, (req, res) => {
-  bot.processUpdate(req.body);
-  console.log("Telegram update received:", req.body);
-  res.sendStatus(200);
-});
+// app.post(`/bot${TOKEN}`, (req, res) => {
+//   bot.processUpdate(req.body);
+//   console.log("Telegram update received:", req.body);
+//   res.sendStatus(200);
+// });
 
-bot
-  .setWebHook(`${url}/bot${TOKEN}`)
-  .then(() => console.log("Webhook set"))
-  .catch((err) => console.error(err));
+// bot
+//   .setWebHook(`${url}/bot${TOKEN}`)
+//   .then(() => console.log("Webhook set"))
+//   .catch((err) => console.error(err));
+
+bot.on('message', (msg) => {
+    const chatId = msg.chat.id;
+    if(msg.text === '/start') {
+
+        if (!sellers.has(chatId)) {
+            bot.sendMessage(chatId, `Unauthorized access. You are not registered as a seller.\n Your Telegram ID: ${chatId}`);
+        }
+        else {
+            bot.sendMessage(chatId, 
+                'AgACAgIAAxkBAAEKHFxpa_vsbDbT2PMUh6IGx-7mhl2myQACvwxrG01UYEuIl19rH-5qRAEAAwIAA3gAAzgE',
+                {
+                    reply_markup: {
+                        inline_keyboard: [
+                            [{text: 'Открыть Сканер', web_app: {url: webAppUrl_scanner}}]
+                        ]
+                    }
+                });
+        }
+    }
+});
 
 // --- Start server and ngrok tunnel ---
 let isShuttingDown = false;

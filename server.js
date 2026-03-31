@@ -4,7 +4,11 @@ import cors from "cors";
 
 import ngrok from "ngrok";
 import { startServer } from "./utils/serverManager.js";
-import { getSellersArray, handleNodemonRestart } from "./utils/utils.js";
+import {
+  getSellersArray,
+  handleNodemonRestart,
+  isAuthorizedSeller,
+} from "./utils/utils.js";
 
 import {
   loggingMiddleware,
@@ -62,13 +66,13 @@ app.use((err, req, res, next) => {
 
 bot.on("message", (msg) => {
   const chatId = msg.chat.id;
-  const userId = msg.user.id;
+  const userId = msg.from.id;
   const text = msg.text;
 
   console.log(`Received message from chatId=${chatId}:`, text);
 
   if (text === "/start") {
-    if (!SELLERS.has(userId) || chatId !== CHAT_ID)
+    if (!isAuthorizedSeller(SELLERS, userId) || chatId !== CHAT_ID)
       return bot.sendMessage(
         chatId,
         `Unauthorized access. You are not registered as a seller.\nYour Telegram ID: ${chatId}`,
@@ -85,12 +89,20 @@ bot.on("message", (msg) => {
         },
       },
     );
+  } else if (text === "/manager") {
+    return bot.sendMessage(chatId, `Manager command received: ${text}`);
+  } else if (text === "/admin") {
+    return bot.sendMessage(chatId, `Admin command received: ${text}`);
   }
 
   if (!checkChatId(chatId))
     return console.log("Received message from unauthorized chat ID:", chatId);
 
   bot.sendMessage(chatId, `Message received: ${text}`);
+});
+
+bot.on("polling_error", (err) => {
+  console.error("Polling error:", err);
 });
 
 // --- Start server and ngrok tunnel ---

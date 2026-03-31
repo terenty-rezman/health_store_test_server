@@ -13,6 +13,10 @@ const scanProduct = async (req, res) => {
     // const newScan = new ScanModel(scannerData);
     // await newScan.save();
 
+    console.log(
+      "Scanner data saved to database (mocked) - logic to be implemented",
+    );
+
     res.json({ success: true, message: "Scanner data delivered" });
   } catch (error) {
     handleServerError(res, error);

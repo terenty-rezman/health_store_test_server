@@ -24,3 +24,8 @@ export const getSellersArray = () => {
   const SELLER_ID = Number(process.env.SELLER_ID);
   return [{ name: "Seller3", telegram_user_id: SELLER_ID }];
 };
+
+export const isAuthorizedSeller = (sellers, userId) => {
+  if (!Array.isArray(sellers)) return false;
+  return sellers.some((seller) => seller.telegram_user_id === Number(userId));
+};

@@ -6,49 +6,56 @@ const checkChatId = (chatId) => {
 
 // Verify Telegram initData
 function verifyTelegramInitData(initData, botToken) {
-  // console.log("Verifying Telegram initData:", initData);
+  // console.log(
+  //   "========================================\n========================================\n========================================",
+  // );
+  console.log("Verifying Telegram initData:", initData);
   // console.log("Using botToken:", botToken ? "Provided" : "Missing");
   if (!initData) return false;
 
   const dataObj = Object.fromEntries(
-    initData.split("&").map((pair) => pair.split("=")),
+    initData.split("&").map((pair) => {
+      const [key, ...valueParts] = pair.split("=");
+      return [key, decodeURIComponent(valueParts.join("="))]; // handle values with =
+    }),
   );
 
-  console.log("Parsed initData object:", dataObj);
+  // console.log("Parsed initData object:", dataObj);
 
   const receivedHash = dataObj.hash;
 
-  console.log("Received hash:", receivedHash);
-
+  // console.log("Received hash:", receivedHash);
+  if (!receivedHash) return false;
   delete dataObj.hash;
 
   const dataCheckString = Object.entries(dataObj)
+    .sort(([a], [b]) => a.localeCompare(b))
     .map(([k, v]) => `${k}=${v}`)
-    .sort()
     .join("\n");
 
-  console.log("Data check string:", dataCheckString);
+  // console.log("Data check string:", dataCheckString);
 
   const secretKey = crypto
     .createHash("sha256", "WebAppData")
     .update(botToken)
     .digest();
 
-  console.log(
-    "Derived secret key (SHA-256 of bot token):",
-    secretKey.toString("hex"),
-  );
+  // console.log(
+  //   "Derived secret key (SHA-256 of bot token):",
+  //   secretKey.toString("hex"),
+  // );
 
   const hmac = crypto
     .createHmac("sha256", secretKey)
     .update(dataCheckString)
     .digest("hex");
 
-  console.log("Calculated HMAC:", hmac);
+  const authDate = parseInt(dataObj.auth_date);
+  if (Date.now() / 1000 - authDate > 3600) return false;
 
-  console.log(
-    `Verification result: ${hmac === receivedHash ? "valid" : "invalid"}`,
-  );
+  // console.log("Received hash :", receivedHash);
+  // console.log("Calculated HMAC:", hmac);
+  // console.log("Match?", hmac === receivedHash);
 
   return hmac === receivedHash;
 }

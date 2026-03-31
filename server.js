@@ -4,11 +4,7 @@ import cors from "cors";
 
 import ngrok from "ngrok";
 import { startServer } from "./utils/serverManager.js";
-import {
-  handleNodemonRestart,
-  handleServerError,
-  normalizeAPIKey,
-} from "./utils/utils.js";
+import { getSellersArray, handleNodemonRestart } from "./utils/utils.js";
 
 import {
   loggingMiddleware,
@@ -16,7 +12,8 @@ import {
 } from "./middlewares/middleware.js";
 
 import TelegramBot from "node-telegram-bot-api";
-import { checkChatId, verifyTelegramInitData } from "./bot/bot.js";
+import { checkChatId } from "./bot/bot.js";
+import scannerRouter from "./routes/scannerRoute.js";
 
 dotenv.config();
 
@@ -31,10 +28,8 @@ const API_KEY = process.env.API_KEY;
 const TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const bot = new TelegramBot(TOKEN, { polling: true });
 
-const SELLER_ID = Number(process.env.SELLER_ID);
-const SELLERS = new Map([
-  [SELLER_ID, { name: "Seller3", telegram_id: SELLER_ID }],
-]);
+const CHAT_ID = Number(process.env.CHAT_ID);
+const SELLERS = getSellersArray();
 
 app.use(express.json());
 
@@ -49,61 +44,14 @@ app.use(loggingMiddleware);
 app.use(tokenVerificationMiddleware(API_KEY));
 
 // --- Routes ---
+app.use("/api/scanner", scannerRouter);
+
 app.get("/", (req, res) => {
   res.send("Hello! Server is running safely with ngrok.");
 });
 
 app.post("/api/test", (req, res) => {
   res.json({ message: "This is secure API data." });
-});
-
-app.post("/api/test/scanner-data", (req, res) => {
-  try {
-    const { scannerData } = req.body;
-
-    console.log("scannerData - received:", scannerData);
-    console.log(
-      "scannerData - full request body:",
-      scannerData[0].telegramInitData,
-    );
-
-    const headerValue = normalizeAPIKey(req.headers["x-api-key"]);
-    const apiKey = normalizeAPIKey(process.env.API_KEY);
-
-    if (headerValue !== apiKey) {
-      console.log("Unauthorized: invalid API key", { headerValue, apiKey });
-      return res
-        .status(401)
-        .json({ success: false, message: "Unauthorized: invalid API key" });
-    }
-
-    console.log("API key validated successfully");
-
-    const isTelegramValid = verifyTelegramInitData(
-      scannerData[0].telegramInitData,
-      process.env.TELEGRAM_BOT_TOKEN,
-    );
-
-    if (!isTelegramValid) {
-      console.log("Unauthorized: invalid Telegram data");
-      return res.status(403).json({
-        success: false,
-        message: "Unauthorized: invalid Telegram data",
-      });
-    }
-
-    if (!SELLERS.has(chatId)) {
-      console.log("Unauthorized: chat ID not registered");
-      return res.status(403).json({
-        success: false,
-        message: "Unauthorized: chat ID not registered",
-      });
-    }
-
-    res.json({ success: true, message: "Scanner data delivered" });
-  } catch (error) {
-    handleServerError(res, error);
-  }
 });
 
 // --- Error handling middleware ---
@@ -114,12 +62,13 @@ app.use((err, req, res, next) => {
 
 bot.on("message", (msg) => {
   const chatId = msg.chat.id;
+  const userId = msg.user.id;
   const text = msg.text;
 
   console.log(`Received message from chatId=${chatId}:`, text);
 
   if (text === "/start") {
-    if (!SELLERS.has(chatId))
+    if (!SELLERS.has(userId) || chatId !== CHAT_ID)
       return bot.sendMessage(
         chatId,
         `Unauthorized access. You are not registered as a seller.\nYour Telegram ID: ${chatId}`,

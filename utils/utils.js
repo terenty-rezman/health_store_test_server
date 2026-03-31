@@ -19,3 +19,8 @@ export const handleServerError = (
 
 export const normalizeAPIKey = (str) =>
   String(str || "").replace(/[\r\n\s\u00A0]/g, "");
+
+export const getSellersArray = () => {
+  const SELLER_ID = Number(process.env.SELLER_ID);
+  return [{ name: "Seller3", telegram_user_id: SELLER_ID }];
+};

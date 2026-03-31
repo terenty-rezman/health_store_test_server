@@ -7,14 +7,18 @@ const checkChatId = (chatId) => {
 // Verify Telegram initData
 function verifyTelegramInitData(initData, botToken) {
   console.log("Verifying Telegram initData:", initData);
-  if (!initData || !botToken) return false;
+  if (!initData || !botToken) {
+    throw new Error("Missing initData or botToken");
+  }
 
-  const dataObj = Object.fromEntries(
-    initData.split("&").map((pair) => {
-      const [key, ...valueParts] = pair.split("=");
-      return [key, valueParts.join("=")];
-    }),
-  );
+  console.log("Verifying Telegram initData:", initData);
+
+  // const dataObj = Object.fromEntries(
+  //   initData.split("&").map((pair) => {
+  //     const [key, ...valueParts] = pair.split("=");
+  //     return [key, valueParts.join("=")];
+  //   }),
+  // );
 
   // const receivedHash = dataObj.hash;
 
@@ -23,13 +27,20 @@ function verifyTelegramInitData(initData, botToken) {
 
   const params = new URLSearchParams(initData);
   const hash = params.get("hash");
-  if (!hash) return null;
+  if (!hash) throw new Error("Missing hash in initData");
 
   params.delete("hash");
 
-  const dataCheckString = Object.entries(dataObj)
+  // params.sort();
+
+  // const dataCheckString = Object.entries(dataObj)
+  //   .sort(([a], [b]) => a.localeCompare(b))
+  //   .map(([k, v]) => `${k}=${v}`)
+  //   .join("\n");
+
+  const dataCheckString = Array.from(params.entries())
     .sort(([a], [b]) => a.localeCompare(b))
-    .map(([k, v]) => `${k}=${v}`)
+    .map(([key, value]) => `${key}=${value}`)
     .join("\n");
 
   const secretKey = crypto.createHash("sha256").update(botToken).digest();
@@ -46,10 +57,18 @@ function verifyTelegramInitData(initData, botToken) {
   console.log("==========================");
   console.log("==========================");
 
-  if (hmac !== hash) throw new Error("Invalid Telegram initData");
+  if (hmac !== hash) throw new Error("Invalid Telegram initData signature");
 
-  const authDate = parseInt(dataObj.auth_date);
-  if (Date.now() / 1000 - authDate > 3600) return false;
+  // const authDate = parseInt(dataObj.auth_date);
+  // if (Date.now() / 1000 - authDate > 3600) return false;
+
+  const authDate = parseInt(params.get("auth_date") || "0");
+  if (Date.now() / 1000 - authDate > 3600) {
+    // 1 hour
+    throw new Error("Telegram initData expired");
+  }
+
+  const dataObj = Object.fromEntries(params);
 
   return dataObj;
 }

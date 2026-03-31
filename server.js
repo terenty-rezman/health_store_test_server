@@ -4,7 +4,11 @@ import cors from "cors";
 
 import ngrok from "ngrok";
 import { startServer } from "./utils/serverManager.js";
-import { handleNodemonRestart, handleServerError } from "./utils/utils.js";
+import {
+  handleNodemonRestart,
+  handleServerError,
+  normalizeAPIKey,
+} from "./utils/utils.js";
 
 import {
   loggingMiddleware,
@@ -12,7 +16,7 @@ import {
 } from "./middlewares/middleware.js";
 
 import TelegramBot from "node-telegram-bot-api";
-import { checkChatId } from "./bot/bot.js";
+import { checkChatId, verifyTelegramInitData } from "./bot/bot.js";
 
 dotenv.config();
 
@@ -57,7 +61,45 @@ app.post("/api/test/scanner-data", (req, res) => {
   try {
     const { scannerData } = req.body;
 
-    console.log("scannerData - received", scannerData);
+    console.log("scannerData - received:", scannerData);
+    console.log(
+      "scannerData - full request body:",
+      scannerData[0].telegramInitData,
+    );
+
+    const headerValue = normalizeAPIKey(req.headers["x-api-key"]);
+    const apiKey = normalizeAPIKey(process.env.API_KEY);
+
+    if (headerValue !== apiKey) {
+      console.log("Unauthorized: invalid API key", { headerValue, apiKey });
+      return res
+        .status(401)
+        .json({ success: false, message: "Unauthorized: invalid API key" });
+    }
+
+    console.log("API key validated successfully");
+
+    const isTelegramValid = verifyTelegramInitData(
+      scannerData[0].telegramInitData,
+      process.env.TELEGRAM_BOT_TOKEN,
+    );
+
+    if (!isTelegramValid) {
+      console.log("Unauthorized: invalid Telegram data");
+      return res.status(403).json({
+        success: false,
+        message: "Unauthorized: invalid Telegram data",
+      });
+    }
+
+    if (!SELLERS.has(chatId)) {
+      console.log("Unauthorized: chat ID not registered");
+      return res.status(403).json({
+        success: false,
+        message: "Unauthorized: chat ID not registered",
+      });
+    }
+
     res.json({ success: true, message: "Scanner data delivered" });
   } catch (error) {
     handleServerError(res, error);

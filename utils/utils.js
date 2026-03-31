@@ -16,3 +16,6 @@ export const handleServerError = (
     message: error?.message || defaultMessage,
   });
 };
+
+export const normalizeAPIKey = (str) =>
+  String(str || "").replace(/[\r\n\s\u00A0]/g, "");

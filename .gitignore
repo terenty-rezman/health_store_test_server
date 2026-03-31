@@ -29,3 +29,6 @@ build
 .env.test.local
 .env.production.local
 .env.local
+
+# YML files
+config1.yml

@@ -9,6 +9,10 @@ const scanProduct = async (req, res) => {
 
     console.log("scannerData - received:", scannerData);
 
+    // Add to the database logic here, e.g., using Mongoose:
+    // const newScan = new ScanModel(scannerData);
+    // await newScan.save();
+
     res.json({ success: true, message: "Scanner data delivered" });
   } catch (error) {
     handleServerError(res, error);

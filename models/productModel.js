@@ -12,11 +12,13 @@ const productSchema = new mongoose.Schema({
   },
   pharmacy_id: { type: Number },
   sale_entry: {
-    qr_code: { type: String },
+    qr_code: { type: String, required: true },
     date: { type: Date },
     seller_id: { type: Number },
   },
 });
+
+productSchema.index({ "sale_entry.qr_code": 1 }, { unique: true });
 
 const productModel =
   mongoose.models.product || mongoose.model("product", productSchema);

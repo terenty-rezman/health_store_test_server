@@ -9,12 +9,15 @@ const sellerSchema = new mongoose.Schema({
     type: Date,
   },
   employmentPeriod: {
+    status: { type: String, enum: ["active", "inactive"], default: "active" },
     startDate: { type: Date, required: true },
     endDate: { type: Date },
   },
   location_id: { type: Number },
-  telegram_id: { type: Number },
+  telegram_id: { type: Number, required: true },
 });
+
+sellerSchema.index({ telegram_id: 1 }, { unique: true });
 
 const sellerModel =
   mongoose.models.seller || mongoose.model("seller", sellerSchema);

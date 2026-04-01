@@ -18,13 +18,19 @@ import {
 import TelegramBot from "node-telegram-bot-api";
 import { checkChatId } from "./bot/bot.js";
 import scannerRouter from "./routes/scannerRoute.js";
+import connectDB from "./db_config/mongodb.js";
+// import {
+//   admins_populate,
+//   managers_populate,
+//   sellers_populate,
+// } from "./db_service/service.js";
 
 dotenv.config();
 
 const app = express();
 
-const LOCALHOST_URL = process.env.LOCALHOST_URL;
-const SCANNER_URL = process.env.SCANNER_URL;
+// const LOCALHOST_URL = process.env.LOCALHOST_URL;
+// const SCANNER_URL = process.env.SCANNER_URL;
 const SCANNER_URL_APP = process.env.SCANNER_URL_APP;
 
 const PORT = Number(process.env.PORT) || 8080;
@@ -34,6 +40,16 @@ const bot = new TelegramBot(TOKEN, { polling: true });
 
 const CHAT_ID = Number(process.env.CHAT_ID);
 const SELLERS = getSellersArray();
+
+connectDB();
+
+// --- TESTING - Populate database with initial data ---
+// const isPopulateAdmins = false;
+// const isPopulateManagers = false;
+// const isPopulateSellers = false;
+// if (isPopulateAdmins) admins_populate();
+// if (isPopulateManagers) managers_populate();
+// if (isPopulateSellers) sellers_populate();
 
 app.use(express.json());
 

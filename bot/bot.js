@@ -13,37 +13,21 @@ function verifyTelegramInitData(initData, botToken) {
 
   console.log("Verifying Telegram initData:", initData);
 
-  // const dataObj = Object.fromEntries(
-  //   initData.split("&").map((pair) => {
-  //     const [key, ...valueParts] = pair.split("=");
-  //     return [key, valueParts.join("=")];
-  //   }),
-  // );
-
-  // const receivedHash = dataObj.hash;
-
-  // if (!receivedHash) throw new Error("Missing hash in initData");
-  // delete dataObj.hash;
-
   const params = new URLSearchParams(initData);
   const hash = params.get("hash");
   if (!hash) throw new Error("Missing hash in initData");
 
   params.delete("hash");
 
-  // params.sort();
-
-  // const dataCheckString = Object.entries(dataObj)
-  //   .sort(([a], [b]) => a.localeCompare(b))
-  //   .map(([k, v]) => `${k}=${v}`)
-  //   .join("\n");
-
   const dataCheckString = Array.from(params.entries())
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([key, value]) => `${key}=${value}`)
     .join("\n");
 
-  const secretKey = crypto.createHash("sha256").update(botToken).digest();
+  const secretKey = crypto
+    .createHmac("sha256", "WebAppData")
+    .update(botToken)
+    .digest();
 
   const hmac = crypto
     .createHmac("sha256", secretKey)

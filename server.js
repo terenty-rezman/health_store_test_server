@@ -63,7 +63,7 @@ app.use(cors({}));
 
 // --- Middleware ---
 app.use(loggingMiddleware);
-app.use(tokenVerificationMiddleware(API_KEY));
+// app.use(tokenVerificationMiddleware(API_KEY));
 
 // --- Routes ---
 app.use("/api/scanner", scannerRouter);
@@ -90,11 +90,11 @@ bot.on("message", (msg) => {
   console.log(`Received message from chatId=${chatId}:`, text);
 
   if (text === "/start") {
-    if (!isAuthorizedSeller(SELLERS, userId) || chatId !== CHAT_ID)
-      return bot.sendMessage(
-        chatId,
-        `Unauthorized access. You are not registered as a seller.\nYour Telegram ID: ${chatId}`,
-      );
+//     if (!isAuthorizedSeller(SELLERS, userId) || chatId !== CHAT_ID)
+//       return bot.sendMessage(
+//         chatId,
+//         `Unauthorized access. You are not registered as a seller.\nYour Telegram ID: ${chatId}`,
+//       );
 
     return bot.sendMessage(
       chatId,

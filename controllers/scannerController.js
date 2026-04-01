@@ -6,6 +6,7 @@ const scanProduct = async (req, res) => {
   console.log("scanProduct - start:");
   try {
     const { scannerData } = req.body;
+    const telegramUserId = req.telegramUserId;
 
     console.log("scannerData - received:", scannerData);
 

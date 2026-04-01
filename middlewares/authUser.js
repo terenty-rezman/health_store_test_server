@@ -32,17 +32,13 @@ const authUser = (getSellersArray) => {
       // console.log("scannerData[0].chatId:", chatId);
       // console.log("Expected CHAT_ID:", process.env.CHAT_ID);
 
-      if (chatId !== Number(process.env.CHAT_ID)) {
-        console.log("Unauthorized: chat ID not registered");
-        return res.status(403).json({
-          success: false,
-          message: "Unauthorized: chat ID not registered",
-        });
-      }
-
-      // const isAuthorizedSeller = SELLERS.some(
-      //   (seller) => seller.telegram_user_id === userId,
-      // );
+      // if (chatId !== Number(process.env.CHAT_ID)) {
+      //   console.log("Unauthorized: chat ID not registered");
+      //   return res.status(403).json({
+      //     success: false,
+      //     message: "Unauthorized: chat ID not registered",
+      //   });
+      // }
 
       if (!isAuthorizedSeller(SELLERS, userId)) {
         console.log("Unauthorized: user not registered");
@@ -62,19 +58,19 @@ const authUser = (getSellersArray) => {
           .json({ success: false, message: "Unauthorized: invalid API key" });
       }
 
-      try {
-        const verifiedData = verifyTelegramInitData(
-          telegramInitData,
-          process.env.TELEGRAM_BOT_TOKEN,
-        );
-        req.telegramUserId = Number(verifiedData.user.id);
-      } catch (error) {
-        console.error("Error verifying Telegram initData:", error);
-        return res.status(403).json({
-          success: false,
-          message: "Unauthorized: invalid Telegram data",
-        });
-      }
+      // try {
+      //   const verifiedData = verifyTelegramInitData(
+      //     telegramInitData,
+      //     process.env.TELEGRAM_BOT_TOKEN,
+      //   );
+      //   req.telegramUserId = Number(verifiedData.user.id);
+      // } catch (error) {
+      //   console.error("Error verifying Telegram initData:", error);
+      //   return res.status(403).json({
+      //     success: false,
+      //     message: "Unauthorized: invalid Telegram data",
+      //   });
+      // }
 
       next();
     } catch (error) {

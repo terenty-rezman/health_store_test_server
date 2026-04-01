@@ -37,11 +37,13 @@ const SELLERS = getSellersArray();
 
 app.use(express.json());
 
-app.use(
-  cors({
-    origin: [LOCALHOST_URL, SCANNER_URL],
-  }),
-);
+// app.use(
+//   cors({
+//     origin: [LOCALHOST_URL, SCANNER_URL],
+//   }),
+// );
+
+app.use(cors({}));
 
 // --- Middleware ---
 app.use(loggingMiddleware);
